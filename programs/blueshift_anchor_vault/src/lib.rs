@@ -1,12 +1,15 @@
 #![allow(unexpected_cfgs)]
-use anchor_lang::{prelude::*, system_program::{Transfer,transfer}};
+use anchor_lang::{
+    prelude::*,
+    system_program::{transfer, Transfer},
+};
 
 declare_id!("22222222222222222222222222222222222222222222");
- 
+
 #[program]
 pub mod blueshift_anchor_vault {
     use super::*;
- 
+
     pub fn deposit(ctx: Context<VaultAction>, amount: u64) -> Result<()> {
         require_eq!(
             ctx.accounts.vault.lamports(),
@@ -14,8 +17,7 @@ pub mod blueshift_anchor_vault {
             VaultError::VaultAlreadyExists
         );
         let min_rent = Rent::get()?.minimum_balance(0);
-        require!(amount>=min_rent,
-        VaultError::InvalidAmount);
+        require!(amount >= min_rent, VaultError::InvalidAmount);
 
         transfer(
             CpiContext::new(
@@ -29,7 +31,7 @@ pub mod blueshift_anchor_vault {
         )?;
         Ok(())
     }
- 
+
     pub fn withdraw(ctx: Context<VaultAction>) -> Result<()> {
         let signer_key = ctx.accounts.signer.key();
         let signer_seeds = &[b"vault", signer_key.as_ref(), &[ctx.bumps.vault]];
@@ -48,11 +50,11 @@ pub mod blueshift_anchor_vault {
         Ok(())
     }
 }
- 
+
 #[derive(Accounts)]
 pub struct VaultAction<'info> {
     #[account(mut)]
-    pub signer : Signer<'info>,
+    pub signer: Signer<'info>,
 
     #[account(
         mut,
@@ -63,7 +65,7 @@ pub struct VaultAction<'info> {
 
     pub system_program: Program<'info, System>,
 }
- 
+
 #[error_code]
 pub enum VaultError {
     #[msg("vault already exists")]
